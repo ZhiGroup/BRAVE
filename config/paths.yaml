@@ -1,0 +1,89 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# paths.yaml — every external path the pipeline needs, in one place.
+#
+# Copy this file to `paths.local.yaml` and edit the values to match your system.
+# Nothing here ships with real data: every value is a placeholder you must set.
+#
+# Conventions:
+#   - "<...>" marks a value you must fill in.
+#   - Directories that hold one sub-folder per brain region are noted as such;
+#     the region folder names are listed in docs/DATA.md.
+#   - Paths that only matter for a single stage are grouped under that stage.
+#
+# UK Biobank genotype and phenotype data are access-controlled and are NOT
+# distributed with this repository (see docs/DATA.md). The paths below tell the
+# code where to find your own approved copy.
+# ──────────────────────────────────────────────────────────────────────────────
+
+# ── External tools / binaries ────────────────────────────────────────────────
+tools:
+  plink2:  "<path/to>/plink2"
+  gcta:    "<path/to>/gcta-1.94.1"          # FastGWA mixed-model association
+  qctool:  "<path/to>/qctool"               # BGEN sample/variant subsetting
+  bgenix:  "<path/to>/bgenix"
+  jagwas:  "<path/to>/JAGWAS"               # see 2_gwas/jagwas_eigenvalue_clamp.md
+  ldsc_dir: "<path/to>/ldsc"                # directory holding ldsc.py + munge_sumstats.py
+  ldsc_python: "<path/to>/ldsc_env/python"  # the (py2) interpreter LDSC runs under
+  ld_score_panel: "<path/to>/eur_w_ld_chr"  # 1000G EUR LD scores (--ref-ld-chr / --w-ld-chr)
+
+# ── UK Biobank source data (access-controlled — supply your own) ──────────────
+ukb:
+  master_csv:      "<path/to>/ukb_phenotypes.csv"   # subject phenotypes / IDPs / imaging fields
+  kinship_table:   "<path/to>/ukb_relatedness.dat"  # KING kinship (source for sparse GRM)
+  withdrawal_list: "<path/to>/ukb_withdrawals.txt"  # consent-withdrawn IDs to drop
+  bgen:            "<path/to>/mri_subjects.bgen"     # imputed genotypes, MRI subjects (+ .bgi)
+  bgen_sample:     "<path/to>/mri_subjects.sample"   # Oxford .sample for the BGEN
+
+# ── Cohort definitions (one CSV per split; columns documented in docs/DATA.md) ─
+cohorts:
+  dir:           "<path/to>/cohorts"            # holds the CSVs below
+  encoder_train: "encoder_train.csv"            # self-supervised encoder training set
+  encoder_val:   "encoder_val.csv"
+  discovery:     "discovery_cohort.csv"          # GWAS discovery
+  replication:   "replication_cohort.csv"        # GWAS replication
+  inference:     "inference_cohort.csv"          # embedding extraction / held-out
+
+# ── Stage 1: voxel embedding (RASVE encoder) ──────────────────────────────────
+embedding:
+  mni_template:   "<path/to>/MNI152_T1_1mm.nii.gz"   # linear-registration target
+  t1_dir:         "<path/to>/t1_linear_mni"           # registered T1 volumes
+  brain_mask_dir: "<path/to>/brain_masks"
+  subcort_mask_dir: "<path/to>/subcortical_masks"     # 16-region segmentations
+  weights_dir:    "<path/to>/encoder_weights"          # model checkpoints write here
+  log_dir:        "<path/to>/encoder_logs"             # TensorBoard logs
+  bre_out_dir:    "<path/to>/regional_embeddings"      # 128-dim BRE per region per subject
+
+# ── Stage 2: GWAS pipeline ────────────────────────────────────────────────────
+gwas:
+  sparse_grm:    "<path/to>/ukb_sparse.grm"     # GCTA sparse-GRM prefix (.sp + .id)
+  covar_dir:     "<path/to>/covariates"          # FastGWA --qcovar / --covar files
+  pheno_dir:     "<path/to>/phenotypes"          # one file per region x embedding dim
+  fastgwa_out:   "<path/to>/fastgwa_out"         # per-dim univariate sumstats
+  jagwas_out:    "<path/to>/jagwas_out"          # multivariate joint-test sumstats
+  bre_corr_dir:  "<path/to>/bre_correlations"    # residual correlation matrices (JAGWAS input)
+
+# ── Stage 3: post-GWAS (the main analysis surface) ────────────────────────────
+postgwas:
+  # FUMA output root: one sub-folder per region, each containing GenomicRiskLoci.txt,
+  # IndSigSNPs.txt, snps.txt, genes.txt, magma*.out, eqtl.txt, ci.txt, gwascatalog.txt.
+  fuma_dir:       "<path/to>/FUMA"
+  bre_munged_dir: "<path/to>/bre_munged"         # LDSC-munged BRE sumstats (per region x dim)
+
+  # External reference GWAS used for novelty / genetic-correlation comparisons.
+  enigma_dir:     "<path/to>/enigma_subcortical"  # ENIGMA volume GWAS (FUMA + munged)
+  shape_gwas:     "<path/to>/shape_gwas_loci.tsv"  # subcortical-shape GWAS supplementary loci
+  disease_sumstats_dir: "<path/to>/disease_sumstats"  # brain-disorder GWAS (munged)
+  heart_sumstats_dir:   "<path/to>/cardiac_mri_gwas"  # cardiac-MRI trait GWAS
+  oct_sumstats_dir:     "<path/to>/retinal_oct_gwas"  # retinal-OCT trait GWAS
+
+  univariate_fuma_dir:  "<path/to>/fastgwa_minp_FUMA"  # FastGWA min-P baseline FUMA (for novelty/comparison)
+  supp_tables_dir:      "<path/to>/supplementary_tables" # finished supp tables (aggregate loci, GC, h2_table.csv)
+  syngo_dir:            "<path/to>/syngo_ora_output"     # SynGO over-representation output
+
+# Results and figures are written inside the repo (3_postgwas/results, /figures);
+# they are derived outputs and are git-ignored, so they are not listed here.
+#
+# A few per-analysis resources are referenced directly in the scripts with an
+# inline "<EXTERNAL: ...>" marker (e.g. an FSL atlas, a one-off reference table).
+# Search the scripts for "<EXTERNAL:" and set each to a path on your system; the
+# marker text describes what the file is.

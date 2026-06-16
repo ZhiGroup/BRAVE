@@ -1,0 +1,65 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# Never commit subject-level data or anything derived directly from it.
+# This repository ships code and documentation only.
+# ──────────────────────────────────────────────────────────────────────────────
+
+# Local path configuration (your private copy with real paths)
+config/paths.local.yaml
+
+# Subject-level / genotype data formats
+*.csv
+*.tsv
+*.txt
+*.xlsx
+*.xls
+*.npy
+*.npz
+*.nii
+*.nii.gz
+*.bgen
+*.bgi
+*.bed
+*.bim
+*.fam
+*.sample
+*.h5
+*.hdf5
+*.pkl
+*.pickle
+*.parquet
+*.gz
+*.zst
+
+# Model checkpoints / weights
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+
+# Derived analysis outputs (regenerate from the scripts)
+3_postgwas/results/
+3_postgwas/figures/
+**/__pycache__/
+*.pyc
+
+# Figures / rendered artifacts
+*.pdf
+*.png
+*.jpg
+*.jpeg
+*.svg
+*.tif
+*.docx
+
+# Editor / OS clutter
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*~
+
+# Keep a couple of small text assets that ARE meant to ship (region lists etc.):
+!docs/*.md
+!**/README.md
+!requirements.txt
+!**/requirements.txt

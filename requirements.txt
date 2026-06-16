@@ -1,0 +1,47 @@
+# Python dependencies. Tested on Python 3.7 (the genetics tooling pins an older
+# stack); newer 3.x works for the post-GWAS analyses but not for the embedding
+# stage, which depends on the MONAI/PyTorch-Lightning versions below.
+#
+#   python -m venv .venv && source .venv/bin/activate
+#   pip install -r requirements.txt
+#
+# Note: a few Python 3.7 idioms are used deliberately (typing.Optional rather
+# than the 3.10 "X | None" union syntax) so the analysis scripts run on the same
+# interpreter as the genetics tools.
+
+# Core scientific stack (all stages)
+numpy
+pandas
+scipy
+statsmodels
+scikit-learn
+pyyaml
+
+# Plotting
+matplotlib
+seaborn
+plotly
+adjustText
+upsetplot
+kaleido            # static export for plotly figures
+
+# I/O helpers
+openpyxl           # .xlsx supplementary tables
+requests           # GWAS Catalog / OpenGWAS lookups
+
+# Stage 1 — voxel embedding encoder (older pins required)
+torch
+lightning
+monai
+nibabel
+GPUtil
+
+# External command-line tools (install separately, then point config/paths.yaml at them):
+#   - GCTA 1.94+         (FastGWA mixed-model association)
+#   - PLINK2             (scoring / PGS)
+#   - LDSC               (heritability, genetic correlation, munge_sumstats.py)
+#   - FUMA / MAGMA       (functional annotation; we use the web platform's outputs)
+#   - JAGWAS             (multivariate joint test; see 2_gwas/jagwas_eigenvalue_clamp.md)
+#
+# R is needed for the JAGWAS phenotype-correlation step and for coloc:
+#   install.packages(c("data.table", "coloc"))
