@@ -45,6 +45,11 @@ cohorts:
 
 # ── Stage 1: voxel embedding (RASVE encoder) ──────────────────────────────────
 embedding:
+  project_root:   "<path/to>/stage1_root"             # scratch root for stage-1 outputs
+  train_dir:      "<path/to>/encoder_train"           # encoder training split: one
+                                                      # sub-folder per subject, each
+                                                      # containing T1_brain.nii.gz
+  val_dir:        "<path/to>/encoder_val"             # held-out split, same layout
   mni_template:   "<path/to>/MNI152_T1_1mm.nii.gz"   # linear-registration target
   t1_dir:         "<path/to>/t1_linear_mni"           # registered T1 volumes
   brain_mask_dir: "<path/to>/brain_masks"

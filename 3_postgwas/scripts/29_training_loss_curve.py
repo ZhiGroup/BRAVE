@@ -37,9 +37,11 @@ PRODUCTION_EPOCH = 7  # the BRE-extraction checkpoint
 DEFAULT_OUT = Path(__file__).resolve().parents[1] / \
     'figures' / 'training_loss' / 'S40_training_loss'
 
-# filename pattern: iteration_epoch_<N>_tier_<M>_model_4_exper_3_lr_<x>_loss_<total>_<voxel>_<inst>.pt
+# filename pattern: iteration_epoch_<N>_tier_<M>_<run tag>_lr_<x>_loss_<total>_<voxel>_<inst>.pt
+# The run tag is whatever weight_prefix the encoder was trained with, so it is
+# matched loosely rather than hardcoded.
 PATTERN = re.compile(
-    r'iteration_epoch_(\d+)_tier_(\d+)_model_4_exper_3_lr_\d+_'
+    r'iteration_epoch_(\d+)_tier_(\d+)_.+?_lr_\d+_'
     r'loss_([\d.]+)_([\d.]+)_([\d.]+)\.pt$'
 )
 

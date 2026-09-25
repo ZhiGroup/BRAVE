@@ -1,12 +1,16 @@
-# Voxel-embedding GWAS of subcortical brain structure
+# BRAVE — Brain Region Aggregation of Voxel Embeddings
 
 Code accompanying our study of subcortical genetic architecture through
 self-supervised voxel embeddings and a multivariate GWAS test (JAGWAS).
 
 The short version: we train a 3D contrastive encoder on T1 MRI, mean-pool the
-per-voxel embeddings within 16 subcortical masks to get a 128-dimensional
+per-voxel embeddings within 16 region masks to get a 128-dimensional
 **Brain Region Embedding (BRE)** per region per subject, and run a multivariate
-joint-test GWAS (JAGWAS) on those 128 dimensions. The joint test recovers far
+joint-test GWAS (JAGWAS) on those 128 dimensions. The 16 regions are 14 bilateral
+subcortical structures (seven bilateral pairs), the brainstem with the fourth
+ventricle, and the lateral ventricle. The last two are not subcortical, so we
+say brain regions rather than subcortical regions throughout. The joint test
+recovers far
 more genetic signal than univariate GWAS on regional volume alone — 276 loci
 versus 60 for a FastGWA min-P baseline on the same cohort, a 4.6-fold increase
 without adding subjects.
@@ -83,6 +87,8 @@ docs/          DATA.md (input schemas), PIPELINE.md (run order)
 1_embedding/   self-supervised encoder + BRE extraction
 2_gwas/        BGEN/GRM/covariate prep, FastGWA, JAGWAS
 3_postgwas/    numbered analysis scripts, shared figure style, run_all.sh
+4_robustness/  replication in a genetically heterogeneous cohort; encoder
+               retraining and stability of the reported loci
 third_party/   vendored external tools (PoPS), under their own licenses
 ```
 

@@ -10,9 +10,11 @@
 
 set -e
 PYTHON=${PYTHON:-python}
+RSCRIPT=${RSCRIPT:-Rscript}
 S=scripts
 
-run() { echo ">> $1"; $PYTHON "$S/$1"; }
+run()  { echo ">> $1"; $PYTHON  "$S/$1"; }
+runR() { echo ">> $1"; $RSCRIPT "$S/$1"; }
 
 # Per region
 run 01_per_region_summary.py
@@ -65,6 +67,23 @@ for s in 21_ablation_loci_barplot 21_oct_locus_plot 22_heart_locus_plot \
          43_univariate_baseline_novelty 44_render_h2_vs_phesant_hits; do
   run "$s.py"
 done
+
+# Genome-wide polygenic scores — SBayesRC
+# Needs SBayesRC and its LD reference configured. The sweep is the long step
+# (hours); 36 is a single-region pilot that confirms the stack end to end first.
+run 36_sbayesrc_pgs_pilot.py
+run 37_sbayesrc_pgs_sweep.py
+run 38_sbayesrc_pgs_cross_region.py
+run 48_pgs_composite_leadsnp_vs_sbayesrc.py   # reads 38 + the lead-SNP baseline (20, 20b)
+
+# Effect-size architecture — GENESIS  (R, not Python)
+# 39 fits one trait at a time and takes its arguments on the command line:
+#     Rscript scripts/39_genesis_polygenicity_pilot.R <trait> <sumstats> [cores]
+# Run it once per trait before the three steps below. It is not invoked here
+# because the trait list depends on which summary statistics you have.
+runR 44_dump_genesis_params.R                 # reads every per-trait fit from 39
+run 40_render_genesis_fig5.py
+run 41_render_genesis_fig5_per_region.py
 
 # Assembled main-figure panels (run last; they read figures produced above)
 run Fig1_framework.py

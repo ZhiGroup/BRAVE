@@ -1,6 +1,5 @@
 
 
-import pixel_embedding_records
 import re
 from glob import glob
 from subprocess import check_output, STDOUT
@@ -26,6 +25,22 @@ from paths import cfg
 
 fastgwas_root_dir = cfg.gwas.fastgwa_out
 print('reloaded')
+
+
+def _records():
+    """Return the local bookkeeping module naming each encoder's embeddings.
+
+    Only the four `do_fastgwa_*` convenience drivers below need it; the
+    command-line entry point (`main`) does not, which is why this import is
+    deferred rather than done at module level.
+
+    The module is machine-specific and is not shipped. To use those drivers,
+    put a `pixel_embedding_records.py` on the import path exposing
+    `project_dir` plus one `subject_dict_*` / `prefix_*` pair per encoder
+    variant you trained. See docs/DATA.md for the expected contents.
+    """
+    import pixel_embedding_records
+    return pixel_embedding_records
 
 
 def create_combined_mimp(gm_min_p_discovery_path, wm_min_p_discovery_path, csf_min_p_discovery_path, save_dir, cohort_type='discovery'):
@@ -391,12 +406,13 @@ class minP:
 
 def do_fastgwa_random_weight_model():
     print('Doing fastgwa-> minP for untrained Model')
+    rec = _records()
     r = RunFastGWA(
-        cluster_embedding_path=pixel_embedding_records.subject_dict_discovery_local_moA_rand,
+        cluster_embedding_path=rec.subject_dict_discovery_local_moA_rand,
         cohort_type='discovery',
 
-        project_name=pixel_embedding_records.project_dir,
-        prefix=pixel_embedding_records.prefix_local_moA_rand
+        project_name=rec.project_dir,
+        prefix=rec.prefix_local_moA_rand
     )
 
     print(f"FastGWA started................................")
@@ -413,12 +429,13 @@ def do_fastgwa_random_weight_model():
 
 def do_fastgwa_Base_VoxelEmbedding():
     print('Doing fastgwa-> minP Base_VoxelEmbedding')
+    rec = _records()
     r = RunFastGWA(
-        cluster_embedding_path=pixel_embedding_records.subject_dict_discovery_local_bm,
+        cluster_embedding_path=rec.subject_dict_discovery_local_bm,
         cohort_type='discovery',
 
-        project_name=pixel_embedding_records.project_dir,
-        prefix=pixel_embedding_records.prefix_local_bm
+        project_name=rec.project_dir,
+        prefix=rec.prefix_local_bm
     )
 
     print(f"FastGWA started................................")
@@ -436,12 +453,13 @@ def do_fastgwa_Base_VoxelEmbedding():
 def do_fastgwa_moA():
     print('Doing fastgwa-> minP ,moA combined')
 
+    rec = _records()
     r = RunFastGWA(
-        cluster_embedding_path=pixel_embedding_records.subject_dict_discovery_combined_moA,
+        cluster_embedding_path=rec.subject_dict_discovery_combined_moA,
         cohort_type='discovery',
 
-        project_name=pixel_embedding_records.project_dir,
-        prefix=pixel_embedding_records.prefix_combined_moA
+        project_name=rec.project_dir,
+        prefix=rec.prefix_combined_moA
     )
 
     print(f"FastGWA started................................")
@@ -457,12 +475,13 @@ def do_fastgwa_moA():
 
 def do_fastgwa_vcic():
     print('Doing fastgwa-> minP for untrained Model')
+    rec = _records()
     r = RunFastGWA(
-        cluster_embedding_path=pixel_embedding_records.subject_dict_replication_local_vcic,
+        cluster_embedding_path=rec.subject_dict_replication_local_vcic,
         cohort_type='replication',
 
-        project_name=pixel_embedding_records.project_dir,
-        prefix=pixel_embedding_records.prefix_local_vcic
+        project_name=rec.project_dir,
+        prefix=rec.prefix_local_vcic
     )
 
     print(f"FastGWA started................................")

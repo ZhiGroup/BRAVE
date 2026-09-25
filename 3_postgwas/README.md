@@ -33,6 +33,19 @@ cross-modal correlations (18/18b, 19/19b).
 
 **PGS (20, 20b)** — polygenic-score validation in the replication fold.
 
+**Genome-wide PGS — SBayesRC (36, 37, 38, 48)** — a single-region pilot that
+confirms the stack end to end, the production sweep across all 16 regions, the
+cross-region R² matrix that tests region specificity at the polygenic level, and
+the composite figure comparing that matrix with the lead-SNP baseline from 20 and
+20b. Needs SBayesRC and its LD reference; the sweep runs for hours.
+
+**Effect-size architecture — GENESIS (39, 44, 40, 41)** — in that order, and the
+first two are R, not Python. `39_genesis_polygenicity_pilot.R` fits one trait per
+invocation and takes its arguments on the command line, so `run_all.sh` does not
+call it: run it once per trait first. `44_dump_genesis_params.R` then collects
+every fit into two tidy CSVs, and 40 and 41 render the pooled and per-region
+panels.
+
 **Locus plots, PheWAS, demographics, PoPS, colocalisation, PHESANT (21–44)** —
 the focused locus figures, FinnGen/OpenGWAS PheWAS, cohort flow and demographics,
 PoPS gene prioritisation, colocalisation, phenome-wide PHESANT scans, and the
@@ -43,8 +56,10 @@ Scripts numbered 19+ take `argparse` options (`--help` lists them); earlier ones
 read their paths from the central config. A few one-off reference files are
 marked inline as `<EXTERNAL: ...>` — grep for that string and set each.
 
-## Not included
+## A note on the numbering
 
-Exploratory analyses that did not make the manuscript (an SBayesRC PGS sweep and
-a GENESIS polygenicity pilot) are intentionally left out to keep this set
-minimal. Ask if you want them added back.
+Ten numbers are used twice, because separate groups of scripts were developed in
+parallel: 16, 21, 36, 37, 38, 40, 41, 42, 43 and 44 each name two scripts. For
+example `36_age_sex_scatter_supp.py` and `36_sbayesrc_pgs_pilot.py` both exist.
+The number is a rough development order, not a unique identifier — `run_all.sh`
+is the authoritative run order, and it names every script in full.

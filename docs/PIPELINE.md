@@ -8,7 +8,10 @@ genotype/imaging data and substantial compute.
 ## Stage 1 — voxel embedding  (`1_embedding/`)
 
 1. Train the contrastive encoder on the encoder train/val split
-   (`train_pixpro.py`).
+   (`train_encoder.py`). Pass `--scheduler-epochs 40 --train-epochs 8` to
+   reproduce the published encoder: the one-cycle learning-rate schedule is
+   built for 40 epochs but training stops at 8, so setting both to the same
+   value gives a different learning-rate trajectory.
 2. Extract per-voxel embeddings and mean-pool them within the 16 masks to get
    the 128-dim BRE per region per subject (`extract_regional_embeddings.py`).
 3. (Optional) Extract regional shape features for the volume/shape comparison
@@ -45,6 +48,23 @@ bash run_all.sh
 ```
 
 Scripts are numbered in dependency order and grouped (per-region → cross-region
-→ novelty/replication → heritability/genetic-correlation → PGS). Each writes a
-CSV under `results/` and a figure under `figures/`. See
-[`../3_postgwas/README.md`](../3_postgwas/README.md) for the per-script table.
+→ novelty/replication → heritability/genetic-correlation → PGS → effect-size
+architecture). Each writes a CSV under `results/` and a figure under `figures/`.
+See [`../3_postgwas/README.md`](../3_postgwas/README.md) for the per-script table.
+
+## Stage 4 — robustness  (`4_robustness/`)
+
+Stages 1–3 produce the reported loci. Stage 4 asks two questions they cannot ask
+of themselves, and neither depends on the other, so either can be run alone once
+stage 3 has finished.
+
+`generalizability/` recomputes the reported loci in a cohort drawn from outside
+the ancestry cluster used for discovery, testing both whether the association
+reappears and whether allelic effects keep their direction.
+
+`reproducibility/` retrains the encoder from independent initialisations and
+carries each run through the entire pipeline, comparing the learned
+representations, the association statistics and the called loci.
+
+Run order and the interpretation caveats for each are in
+[`../4_robustness/README.md`](../4_robustness/README.md).
