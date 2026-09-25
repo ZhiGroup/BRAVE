@@ -36,6 +36,11 @@ T1 MRI ─▶ [1] voxel encoder ─▶ per-voxel embeddings
                   correlation (ENIGMA / shape / disease / cardiac / OCT),
                   cell-type & pathway enrichment, PGS validation,
                   and the figures/tables reported in the paper
+                                     │
+                                     ▼
+              [4] robustness: do the loci hold in a genetically
+                  heterogeneous cohort, and do they survive retraining
+                  the encoder from a different initialisation
 ```
 
 Each numbered directory is a stage you can run independently once its inputs
@@ -46,6 +51,7 @@ exist:
 | [`1_embedding/`](1_embedding/) | Voxel encoder | Train the contrastive encoder, extract BREs and regional shape features |
 | [`2_gwas/`](2_gwas/) | GWAS | Build the BGEN/GRM/covariates, run FastGWA per dim, run JAGWAS multivariate test |
 | [`3_postgwas/`](3_postgwas/) | Post-GWAS | All downstream analysis and figure scripts (the bulk of the repo) |
+| [`4_robustness/`](4_robustness/) | Robustness | External validation in a genetically heterogeneous cohort, and stability of the loci across encoder retraining |
 
 ## Getting started
 
