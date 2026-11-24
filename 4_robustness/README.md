@@ -14,6 +14,10 @@ training run learns a different 128-dimensional basis for the same anatomy.
 through the whole pipeline, and compares the representations, the association statistics and
 the called loci.
 
+Loci for the retrained runs are called with `local_clumping/`, a FUMA SNP2GENE-equivalent
+clumping tool run with the parameters of the published FUMA analysis (see
+`local_clumping/VALIDATION.md`: it reproduces 1,032 of the 1,034 published FUMA lead variants).
+
 Both read their paths from `config/paths.yaml` like the rest of the repository. Scripts that
 need a resource with no natural home in that file carry an inline `<EXTERNAL: ...>` marker
 naming what to supply.

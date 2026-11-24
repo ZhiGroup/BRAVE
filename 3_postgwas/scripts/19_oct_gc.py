@@ -434,7 +434,7 @@ ax.set_xticklabels(trait_labels_short, rotation=45, ha='right', fontsize=FS_TICK
 ax.set_yticks(range(len(disp_order)))
 ax.set_yticklabels(disp_order, fontsize=FS_TICK)
 ax.set_title(
-    f'Genetic correlation: BRE dims vs retinal OCT traits (top-{TOP_K} h² dims)\n* FDR q<0.05',
+    f'Genetic correlation: BRE dims vs retinal OCT traits (top-{TOP_K} fastGWA-REML h²-ranked dimensions)\n* FDR q < 0.05',
     fontsize=FS_LABEL, fontweight='bold'
 )
 ax.set_xlabel('Retinal OCT trait', fontsize=FS_LABEL)

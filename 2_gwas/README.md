@@ -31,8 +31,9 @@ The notebooks build the inputs; the Python/R/shell scripts run the association.
 JAGWAS inverts the 128×128 residual correlation matrix R. Some regions have an
 ill-conditioned R, which inflates the joint statistic. We clamp small
 eigenvalues before inverting; the details and the relevant code are in
-[`jagwas_eigenvalue_clamp.md`](jagwas_eigenvalue_clamp.md). Point
-`tools.jagwas` at the patched binary.
+[`jagwas_eigenvalue_clamp.md`](jagwas_eigenvalue_clamp.md). Build the patched binary from
+upstream JAGWAS as described in [`jagwas_patch/README.md`](jagwas_patch/README.md), then point
+`tools.jagwas` at it.
 
 The notebooks ship with all cell outputs cleared (they had executed on real
 subject data). Set the `ukb.*`, `gwas.*`, and `cohorts.*` keys in

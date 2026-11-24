@@ -16,7 +16,7 @@ LA traits (3):
   LAV_min  — left atrial minimum volume (residual after active emptying)
   LAEF     — left atrial ejection fraction (active LA contractile function)
 
-15 pre-specified pairs (5 regions × 3 LA traits).
+15 literature-selected pairs (5 regions × 3 LA traits).
 Best-p dim per pair (lowest p among top-5 h² dims), BH FDR on 15 best p-values.
 
 Outputs:
@@ -230,7 +230,7 @@ ax.set_yticklabels(y_labels, fontsize=FS_TICK)
 ax.set_xlabel('Genetic correlation (rg)', fontsize=FS_LABEL)
 ax.set_title(
     'Hypothesis-driven Heart GC: limbic–LA autonomic pathway\n'
-    '(15 pre-specified pairs; diamonds = FDR q<0.05)',
+    '(15 literature-selected pairs; diamonds = FDR q<0.05)',
     fontsize=FS_LABEL, fontweight='bold'
 )
 

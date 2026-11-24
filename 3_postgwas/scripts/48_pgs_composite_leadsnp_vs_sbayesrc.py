@@ -55,13 +55,14 @@ def load_matrix(csv_path: Path) -> pd.DataFrame:
     return m.reindex(index=CANONICAL_ORDER, columns=CANONICAL_ORDER)
 
 
-def draw_heatmap(ax, mat: pd.DataFrame, title: str, norm, cmap: str = "viridis"):
+def draw_heatmap(ax, mat: pd.DataFrame, title: str, norm, xlabel: str,
+                 cmap: str = "viridis"):
     im = ax.imshow(mat.values, cmap=cmap, norm=norm, aspect="equal")
     ax.set_xticks(range(len(CANONICAL_ORDER)))
     ax.set_yticks(range(len(CANONICAL_ORDER)))
     ax.set_xticklabels(CANONICAL_ORDER, rotation=45, ha="right", fontsize=6)
     ax.set_yticklabels(CANONICAL_ORDER, fontsize=6)
-    ax.set_xlabel("Target region (top-h² BRE dim)", fontsize=8)
+    ax.set_xlabel(xlabel, fontsize=8)
     ax.set_ylabel("PGS source region", fontsize=8)
     ax.set_title(title, fontsize=9)
     diag_mean = np.diag(mat.values).mean()
@@ -101,10 +102,14 @@ def main():
     norm = Normalize(vmin=0.0, vmax=a.vmax)
 
     fig, (ax_a, ax_b) = plt.subplots(1, 2, figsize=(MM(180), MM(90)))
+    # Target definitions differ by panel (2026-11-22): SBayesRC scores the region's
+    # top LDSC-h² dimension; the lead-SNP R² is the maximum over all 128 dimensions.
     im_a = draw_heatmap(ax_a, sbayes,
-                        "a  SBayesRC whole-genome PGS", norm)
+                        "a  SBayesRC whole-genome PGS", norm,
+                        "Target region (top LDSC-h² BRE dimension)")
     _ = draw_heatmap(ax_b, leadsnp,
-                     "b  Lead-SNP polygenic score baseline", norm)
+                     "b  Lead-SNP polygenic score baseline", norm,
+                     "Target region (maximum R² over 128 BRE dimensions)")
 
     cbar = fig.colorbar(im_a, ax=[ax_a, ax_b], shrink=0.75,
                         fraction=0.03, pad=0.02)

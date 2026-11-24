@@ -3,7 +3,8 @@
 Compute per-cohort demographics for Supplementary Table S10.
 
 Cohorts (matching Methods M1 — analysed cohort = pheno ∩ qcovar ∩ ccovar):
-  - BRE encoder training: union of base_line_train.csv + base_line_val.csv (N=6,130)
+  - BRE encoder development cohort: union of base_line_train.csv + base_line_val.csv (N=6,130 allocated;
+    4,586 trained, 1,530 held out, 14 without a preprocessed image; relabelled 2026-11-24, provenance closure §2)
   - GWAS discovery: pheno ∩ qcovar ∩ ccovar (N=22,878, FastGWA log canonical)
   - GWAS replication (analysed): pheno ∩ qcovar ∩ ccovar (N=12,359, FastGWA log canonical)
 
@@ -174,7 +175,8 @@ def main():
 
     print('Computing per-cohort demographics...')
     rows = [
-        compute_demographics(train_eids, 'BRE encoder training', ukb),
+        compute_demographics(train_eids, 'BRE encoder development cohort (4,586 trained; 1,530 held out; '
+                                         '14 without a preprocessed image)', ukb),
         compute_demographics(disc_eids,  'GWAS discovery', ukb),
         compute_demographics(repl_eids,  'GWAS replication (analysed)', ukb),
     ]

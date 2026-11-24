@@ -410,7 +410,7 @@ global_labels = [bai82_meta[pid]['name'] for pid in global_ids_present]
 
 make_heatmap(
     agg_sub=agg_global,
-    title=f'Genetic correlation: BRE dims vs cardiac traits (global, top-{TOP_K} h² dims)\n* FDR q<0.05',
+    title=f'Genetic correlation: BRE dims vs cardiac traits (global, top-{TOP_K} fastGWA-REML h²-ranked dimensions)\n* FDR q < 0.05',
     out_stem='heart_gc_heatmap_global',
     region_order=REGIONS_16,
     trait_ids=global_ids_present,
@@ -435,7 +435,7 @@ all_labels = [bai82_meta[pid]['name'] for pid in all_ids_present]
 
 make_heatmap(
     agg_sub=agg,
-    title=f'Genetic correlation: BRE dims vs all 82 cardiac traits (top-{TOP_K} h² dims)\n* FDR q<0.05',
+    title=f'Genetic correlation: BRE dims vs all 82 cardiac traits (top-{TOP_K} fastGWA-REML h²-ranked dimensions)\n* FDR q < 0.05',
     out_stem='heart_gc_heatmap_all',
     region_order=REGIONS_16,
     trait_ids=all_ids_present,

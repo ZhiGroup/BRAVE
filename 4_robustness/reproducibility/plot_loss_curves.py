@@ -45,17 +45,30 @@ FIELD_RE = {f: re.compile(r"\b" + f + r"=([0-9.eE+-]+)") for f in FIELDS}
 
 PAPER_EPOCH = 7
 
+# Legend names (2026-11-22): the manuscript's names, not the run-directory names.
+DISPLAY = {"published": "Primary", "seed_1": "Retrained 1", "seed_2": "Retrained 2"}
+
+RESTARTS = {}
+
 
 def parse_log(path):
-    """epoch -> {field: value}, taking the last line seen for each epoch."""
+    """epoch -> {field: value}, taking the last line seen for each epoch.
+
+    Also records in RESTARTS[path] how many times the epoch index went DOWN while
+    reading the log, which is what a restarted run looks like in its stdout.
+    """
     per_epoch = {}
     with open(path, "r", errors="replace") as fh:
         blob = fh.read()
+    prev, restarts = -1, 0
     for line in blob.replace("\r", "\n").split("\n"):
         m = EPOCH_RE.search(line)
         if not m:
             continue
         ep = int(m.group(1))
+        if ep < prev:
+            restarts += 1
+        prev = ep
         row = per_epoch.setdefault(ep, {})
         for f, rx in FIELD_RE.items():
             hit = rx.search(line)
@@ -64,6 +77,7 @@ def parse_log(path):
                     row[f] = float(hit.group(1))
                 except ValueError:
                     pass
+    RESTARTS[path] = restarts
     rows = []
     for ep in sorted(per_epoch):
         r = dict(per_epoch[ep])
@@ -93,9 +107,9 @@ def main():
         df["run"] = name
         runs.append(df)
         have_val = "val_local_loss_epoch" in df.columns
-        print("{0:14s} epochs {1:3d}..{2:3d}   val logged: {3}".format(
+        print("{0:14s} epochs {1:3d}..{2:3d}   val logged: {3}   restarts in log: {4}".format(
             name, int(df["epoch"].min()), int(df["epoch"].max()),
-            "yes" if have_val else "no"))
+            "yes" if have_val else "no", RESTARTS.get(path, 0)))
     if not runs:
         return 1
     allr = pd.concat(runs, ignore_index=True)
@@ -115,8 +129,8 @@ def main():
     gs = fig.add_gridspec(1, 3, wspace=0.34, left=0.075, right=0.985,
                           top=0.90, bottom=0.28)
 
-    panels = [("train_local_loss", "training loss (voxel term)", "a"),
-              ("val_local_loss_epoch", "held-out loss (voxel term)", "b"),
+    panels = [("train_local_loss", "training loss (fine-scale voxel term)", "a"),
+              ("val_local_loss_epoch", "held-out loss (fine-scale voxel term)", "b"),
               ("train_instance_loss", "training loss (instance term)", "c")]
 
     names = sorted(allr["run"].unique())
@@ -143,12 +157,13 @@ def main():
         ax.set_ylabel(ylab, fontsize=FS_LABEL)
         ax.set_title(letter, loc="left", fontsize=FS_TITLE, fontweight="bold")
     fig.axes[0].text(PAPER_EPOCH + 0.8, fig.axes[0].get_ylim()[1],
-                     "published\ncheckpoint", fontsize=5.6, color="#c44e52",
+                     "epoch-7\ncheckpoint", fontsize=5.6, color="#c44e52",
                      va="top")
 
     from matplotlib.lines import Line2D
     handles = [Line2D([], [], color=colours[nm],
-                      lw=1.4 if nm == "published" else 1.0, label=nm)
+                      lw=1.4 if nm == "published" else 1.0,
+                      label=DISPLAY.get(nm, nm))
                for nm in names]
     fig.legend(handles=handles, loc="lower center", ncol=min(6, len(handles)),
                frameon=False, fontsize=6, columnspacing=1.6,

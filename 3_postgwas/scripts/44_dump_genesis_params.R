@@ -10,10 +10,16 @@
 #
 # Why this exists: the fitted parameters live only inside 27 fit_2comp.rds
 # objects, and the projections live in 27 projection.csv files whose column
-# HEADERS ARE MISASSIGNED at source (see the rename below). Every published
-# number is correct because the figure renderer applies that rename, but no
-# shipped table carries pi_c, so Supplementary Note 3's "12 of 16 regions"
-# claim has no display item. This produces one.
+# HEADERS ARE MISASSIGNED at source (see the rename below). No shipped table
+# carried pi_c, so Supplementary Note 3's "12 of 16 regions" claim had no
+# display item. This produces one.
+#
+# 2026-11-21 fix (BRAVE item C8): the earlier rename mapped herit_explained to
+# frac_h2_captured. GENESIS v1.0 projection(CI = FALSE) returns
+# list(heritability, Numdiscoveries, pheno.variance, GVpercentage), so that
+# column is pheno.variance, the share of PHENOTYPIC variance explained. It is
+# now written as pheno_var_explained. frac_h2_captured is now the true
+# fraction of heritability, pheno.variance / heritability (= GVpercentage/100).
 #
 # The projection.csv "model" column reads "3comp"; the fit is TWO-component
 # (39_genesis_polygenicity_pilot.R passes modelcomponents = 2 and saves
@@ -72,7 +78,8 @@ for (d in dirs) {
       N                      = p$N,
       h2_total               = p$n_discoveries,
       n_loci_gws             = p$GV_pct,
-      frac_h2_captured       = p$herit_explained,
+      pheno_var_explained    = p$herit_explained,
+      frac_h2_captured       = p$herit_explained / p$n_discoveries,
       stringsAsFactors = FALSE)
   }
 }

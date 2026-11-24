@@ -47,10 +47,10 @@ REGION_DISPLAY = {
 }
 
 VARIANTS = [
-    ("top1_R2",            "Top-h² rank-1 (main paper)",   "#1f77b4"),
-    ("composite_mean_R2",  "Composite (unweighted mean)",  "#ff7f0e"),
-    ("composite_h2wt_R2",  "Composite (h²-weighted mean)", "#2ca02c"),
-    ("best_per_dim_R2",    "Best individual dim (post-hoc)", "#888888"),
+    ("top1_R2",            "Top LDSC-h² dimension",             "#1f77b4"),
+    ("composite_mean_R2",  "Composite, unweighted mean",        "#ff7f0e"),
+    ("composite_h2wt_R2",  "Composite, LDSC-h²-weighted mean",  "#2ca02c"),
+    ("best_per_dim_R2",    "Best of top five (post hoc)",       "#888888"),
 ]
 
 
@@ -74,9 +74,9 @@ def main():
     ax.set_yticks(y)
     ax.set_yticklabels(df["region_disp"].values, fontsize=7.5)
     ax.set_xlabel("R² in independent replication cohort", fontsize=8)
-    ax.set_title("PGS aggregation sensitivity — composite mean R² across 16 regions:\n"
-                 f"top-h² rank-1 = {df['top1_R2'].mean():.4f}; composite mean = {df['composite_mean_R2'].mean():.4f}; "
-                 f"composite h²-wt = {df['composite_h2wt_R2'].mean():.4f}; best per-dim (post-hoc) = {df['best_per_dim_R2'].mean():.4f}",
+    ax.set_title("PGS aggregation sensitivity — mean R² across 16 regions:\n"
+                 f"top LDSC-h² dimension = {df['top1_R2'].mean():.4f}; unweighted composite = {df['composite_mean_R2'].mean():.4f}; "
+                 f"LDSC-h²-weighted composite = {df['composite_h2wt_R2'].mean():.4f}; best of top five (post hoc) = {df['best_per_dim_R2'].mean():.4f}",
                  fontsize=8)
     ax.legend(frameon=False, fontsize=7, loc="lower right")
     ax.grid(True, axis="x", alpha=0.3)

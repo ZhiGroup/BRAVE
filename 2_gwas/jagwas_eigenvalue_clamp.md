@@ -21,15 +21,18 @@ Any eigenvalue below `tol` is inverted as `1/tol` rather than `1/eigval`. This
 caps the effective condition number at 1e5. The clamp targets the problematic
 tail (eigenvalues around 1e-5) and leaves the bulk (about 0.01 to 80) untouched.
 
-Clamping rather than zeroing matters: every one of the 128 eigen-directions is
-kept, so the joint test still has df = 128. Dropping directions would have
-changed the degrees of freedom and the null distribution.
+Clamping rather than zeroing keeps every eigen-direction. When clamping is active, however,
+the joint statistic is a weighted sum of chi-squared components rather than exactly
+chi-squared(d): each clamped direction contributes 1/tol instead of 1/eigval, which lowers the
+null mean of the statistic below d. P-values are still evaluated against chi-squared(d) for
+the retained dimensionality d, so the test is conservative when clamping is active.
 
 ```cpp
 // Regularized inversion via eigendecomposition with Tikhonov-style clamping.
 // Strategy: clamp eigenvalues below tol = max_eigval * 1e-5 before inverting.
 // This caps the effective condition number at 1e5 (original can be ~6e6 for thalamus).
-// Clamping (not zeroing) preserves all 128 directions so df=128 remains valid.
+// Clamping (not zeroing) keeps all directions; with clamping active the statistic is a
+// weighted sum of chi-squared terms, so testing against chi-squared(d) is conservative.
 arma::vec eigval;
 arma::mat eigvec;
 arma::eig_sym(eigval, eigvec, cor);

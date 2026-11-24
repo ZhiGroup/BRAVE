@@ -15,7 +15,13 @@ Three figures produced (one per Wen Fig 5 panel):
   fig5_panel_b_discoveries_per_region.{pdf,png}  — # GWS loci vs N
   fig5_panel_c_h2_captured_per_region.{pdf,png}  — % h² captured vs N
   fig5_panel_a_effect_size_per_region.{pdf,png}  — effect-size density
+
+2026-11-21 fix (BRAVE item C8): panel c previously plotted GENESIS's pheno.variance (the
+share of PHENOTYPIC variance explained by projected genome-wide-significant SNPs) under the
+label "% h² captured". It now plots the true fraction of heritability captured,
+GVpercentage = pheno.variance / heritability.
 """
+import argparse
 import subprocess
 import sys
 from pathlib import Path
@@ -29,8 +35,14 @@ sys.path.insert(0, str(SCRIPT_DIR))
 from fig_style import apply_mpl_style, save_mpl, MM
 
 PROJECT_BASE = SCRIPT_DIR.parents[1]
-GENESIS_DIR = PROJECT_BASE / "post_gwas_analysis" / "results" / "genesis"
-FIG_DIR = PROJECT_BASE / "post_gwas_analysis" / "figures" / "genesis"
+_ap = argparse.ArgumentParser(description="Script 41: per-region GENESIS panels")
+_ap.add_argument("--genesis-dir",
+                 default=str(PROJECT_BASE / "post_gwas_analysis" / "results" / "genesis"))
+_ap.add_argument("--fig-dir",
+                 default=str(PROJECT_BASE / "post_gwas_analysis" / "figures" / "genesis"))
+_args = _ap.parse_args()
+GENESIS_DIR = Path(_args.genesis_dir)
+FIG_DIR = Path(_args.fig_dir)
 FIG_DIR.mkdir(parents=True, exist_ok=True)
 
 RSCRIPT = "<EXTERNAL: Rscript>"
@@ -103,12 +115,20 @@ def load_projection(trait):
     if not pf.exists():
         return None
     df = pd.read_csv(pf)
-    # As established in pilot: p[1]=h²(constant), p[2]=#disc, p[3]=fraction h² captured
-    return df.rename(columns={
+    # 39_genesis_polygenicity_pilot.R stored projection() outputs under shifted headers.
+    # GENESIS v1.0 projection(CI = FALSE) returns
+    #   list(heritability, Numdiscoveries, pheno.variance, GVpercentage),
+    # with pheno.variance = GVpercentage * heritability / 100. So:
+    #   n_discoveries   holds heritability (constant per trait)
+    #   GV_pct          holds Numdiscoveries
+    #   herit_explained holds pheno.variance (share of PHENOTYPIC variance)
+    df = df.rename(columns={
         "n_discoveries": "h2_const",
         "GV_pct": "n_disc",
-        "herit_explained": "frac_h2",
+        "herit_explained": "pheno_var",
     })
+    df["frac_h2"] = df["pheno_var"] / df["h2_const"]  # = GVpercentage / 100
+    return df
 
 
 def fig_per_region_panel_b(traits_cache):

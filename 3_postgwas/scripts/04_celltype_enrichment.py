@@ -228,7 +228,7 @@ fig.legend(
 )
 
 fig.suptitle(
-    'MAGMA cell-type enrichment: structural enrichment vs neuronal depletion across 16 BRE regions',
+    'MAGMA cell-type coefficients: structural and neuronal groups across 16 BRE regions',
     fontsize=8, fontweight='bold', y=0.995,
 )
 

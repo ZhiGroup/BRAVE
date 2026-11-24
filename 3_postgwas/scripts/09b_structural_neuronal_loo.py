@@ -153,7 +153,7 @@ ax_r.legend(fontsize=FS_TICK - 1, frameon=False)
 ax_r.spines[['top', 'right']].set_visible(False)
 
 fig.suptitle(
-    'Structural–neuronal anti-correlation: leave-one-out sensitivity (Major Issue 4)',
+    'Structural–neuronal correlation across regions: leave-one-out sensitivity',
     fontsize=FS_LABEL, fontweight='bold',
 )
 

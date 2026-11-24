@@ -1,0 +1,58 @@
+diff --git a/src/JAGWAS.cpp b/src/JAGWAS.cpp
+index da8e856..fb67077 100644
+--- a/src/JAGWAS.cpp
++++ b/src/JAGWAS.cpp
+@@ -73,7 +73,29 @@ if ((delimiter[0] == '\\' && delimiter[1] == 't') || delimiter[0] == 't') {
+     if (!cor.load(Cor_M, arma::auto_detect)) {
+         std::cerr << "Error loading the matrix from file." << std::endl;
+     }
+-    arma::mat cor_i = inv(cor);
++    // Regularized inversion via eigendecomposition with Tikhonov-style clamping.
++    // Strategy: clamp eigenvalues below tol = max_eigval * 1e-5 before inverting.
++    // This caps the effective condition number at 1e5 (original can be ~6e6 for thalamus).
++    // Clamping (not zeroing) preserves all 128 directions so df=128 remains valid.
++    // The 1e-5 factor targets eigenvalues ~1e-5 (the problematic tail) while leaving
++    // the bulk of eigenvalues (~0.01–80) untouched.
++    arma::vec eigval;
++    arma::mat eigvec;
++    arma::eig_sym(eigval, eigvec, cor);
++    double max_eigval = eigval.max();
++    double tol = max_eigval * 1e-5;  // clamp threshold: condition number cap ~1e5
++    int n_clamped = 0;
++    for (arma::uword k = 0; k < eigval.n_elem; k++) {
++        if (eigval(k) < tol) {
++            eigval(k) = 1.0 / tol;  // clamp: invert at floor, not zero
++            n_clamped++;
++        } else {
++            eigval(k) = 1.0 / eigval(k);
++        }
++    }
++    std::cerr << "Correlation matrix: max_eigval=" << max_eigval
++              << ", tol=" << tol << ", n_clamped=" << n_clamped << "/" << cor.n_rows << std::endl;
++    arma::mat cor_i = eigvec * arma::diagmat(eigval) * eigvec.t();
+ 
+     int p = 0;
+ 
+@@ -233,18 +255,18 @@ else {
+    arma::mat z = arma::reshape(Zscores, 1, Zscores.size());
+    //arma::mat zt = arma::reshape(Zscores, Zscores.size(), 1);
+    arma::mat zt = trans(z);
+-   arma::mat chisq = z * cor * zt;
++   arma::mat chisq = z * cor_i * zt;
+    double chisqs = chisq(0,0);
+    double pValue = pgamma(chisqs/4, dim/2, 0.5, 0, logP);
+    if (logP == true) {
+-   pValue = pValue*(1/log(10));      
++   pValue = pValue*(1/log(10));
+    }
+    oss << pValue << "\n";
+ 
+    p++;
+-    
++
+         if (p % nline == 0) {
+-            results << oss.str(); // dump oss to results, every nline 
++            results << oss.str(); // dump oss to results, every nline
+             oss.str(std::string());
+             oss.clear();
+         }	

@@ -12,10 +12,15 @@ Two levels of validation:
       - Nominal        : p < 0.05
 
 (B) Aggregate (AL-) level: for each of 276 AL- loci, look up the best_lead_snp
-    in the replication file of every region that originally discovered it.
-    The locus replicates if its minimum replication p reaches the threshold in
-    ANY of those regions (at least-one-region criterion).
+    in the replication file of its SOURCE region, the contributing region whose
+    discovery lead SNP had the locus's best p (PRIMARY: rep_p, rep_category).
+    As a sensitivity analysis, also record the minimum replication p over every
+    region that discovered the locus (min_rep_p_any_region,
+    rep_category_any_region; the pre-2026-11-21 primary criterion).
     Thresholds: GW (5e-8) / Bonferroni (0.05/276) / Nominal (0.05).
+    2026-11-21 (BRAVE item B1, author decision): primary switched from any-region
+    to same-region, to match the stated design, give one test per locus (as the
+    0.05/276 Bonferroni assumes), and match the heterogeneous-cohort replication.
 
 Figures:
   (A1) Per-region replication rate barplot (nominal and Bonferroni)
@@ -214,15 +219,37 @@ print("\nRunning aggregate (AL-) loci validation ...")
 N_AGG  = len(agg_df)
 P_BONF_AGG = 0.05 / N_AGG
 
+def rep_tier(p):
+    if pd.isna(p):
+        return 'Not found'
+    if p < P_GW:
+        return 'GW'
+    if p < P_BONF_AGG:
+        return 'Bonferroni'
+    if p < P_NOM:
+        return 'Nominal'
+    return 'Not replicated'
+
+# Discovery p of every lead SNP per region (FUMA leadSNPs.txt), used to recover
+# each locus's SOURCE region: the contributing region whose lead has p == best_p.
+lead_p = {f: d.groupby('rsid')['discovery_p'].min().to_dict() for f, d in discovery.items()}
+
 agg_rows = []
 for _, row in agg_df.iterrows():
     snp     = row['best_lead_snp']
     regions = [r.strip() for r in str(row['regions']).split(';')]
+    folders = [DISP_TO_FOLDER.get(r) for r in regions]
 
-    # Look up this SNP in each relevant region's replication file
+    src = [f for f in folders
+           if f in lead_p and snp in lead_p[f]
+           and np.isclose(lead_p[f][snp], row['best_p'], rtol=1e-6, atol=0)]
+    assert len(src) == 1, f"{row['al_id']}: source region not unique: {src}"
+    src = src[0]
+    rep_p_same = rep_lookup[src].get(snp, np.nan) if src in rep_lookup else np.nan
+
+    # Sensitivity: this SNP in every contributing region's replication file
     rep_ps = []
-    for reg_disp in regions:
-        folder = DISP_TO_FOLDER.get(reg_disp)
+    for folder in folders:
         if folder and folder in rep_lookup:
             p = rep_lookup[folder].get(snp, np.nan)
             if pd.notna(p):
@@ -231,23 +258,14 @@ for _, row in agg_df.iterrows():
     min_rep_p = min(rep_ps) if rep_ps else np.nan
     n_rep_files_hit = sum(1 for p in rep_ps if p < P_NOM)
 
-    if pd.isna(min_rep_p):
-        cat = 'Not found'
-    elif min_rep_p < P_GW:
-        cat = 'GW'
-    elif min_rep_p < P_BONF_AGG:
-        cat = 'Bonferroni'
-    elif min_rep_p < P_NOM:
-        cat = 'Nominal'
-    else:
-        cat = 'Not replicated'
-
     agg_rows.append(dict(
         al_id=row['al_id'], chr=row['chr'],
         n_regions=row['n_regions'],
         best_lead_snp=snp, discovery_p=row['best_p'],
-        min_rep_p=min_rep_p, n_rep_files_nominal=n_rep_files_hit,
-        rep_category=cat,
+        source_region=src,
+        rep_p=rep_p_same, rep_category=rep_tier(rep_p_same),
+        min_rep_p_any_region=min_rep_p, rep_category_any_region=rep_tier(min_rep_p),
+        n_rep_files_nominal=n_rep_files_hit,
         novel_vs_enigma=row.get('novel_vs_all', np.nan),
     ))
 
@@ -271,6 +289,11 @@ print(f"  Replicated (Bonferroni p<{P_BONF_AGG:.1e}): "
 print(f"  GW-significant in replication:   {cat_counts['GW']}  ({cat_counts['GW']/N_AGG*100:.1f}%)")
 for c in cats:
     print(f"    {c:<25} {cat_counts[c]:4d}  ({cat_counts[c]/N_AGG*100:.1f}%)")
+print("  (PRIMARY = same region as discovery)")
+cc_any = agg_rep_df['rep_category_any_region'].value_counts().reindex(cats, fill_value=0)
+print(f"  Sensitivity, any contributing region: nominal {cc_any[['GW','Bonferroni','Nominal']].sum()}"
+      f" | Bonferroni {cc_any['GW'] + cc_any['Bonferroni']} | GW {cc_any['GW']}"
+      f" | not found {cc_any['Not found']}")
 print(f"{'='*55}")
 
 # ── STEP 6: REPLICATION RATE OF NOVEL vs KNOWN LOCI ──────────────────────────
@@ -279,7 +302,9 @@ known_mask = ~novel_mask
 for label, mask in [('Novel vs ENIGMA', novel_mask), ('ENIGMA-known', known_mask)]:
     sub = agg_rep_df[mask]
     n_rep = (sub['rep_category'].isin(['GW', 'Bonferroni', 'Nominal'])).sum()
-    print(f"  {label}: {n_rep}/{len(sub)} ({n_rep/len(sub)*100:.1f}%) replicated nominally")
+    n_any = (sub['rep_category_any_region'].isin(['GW', 'Bonferroni', 'Nominal'])).sum()
+    print(f"  {label}: {n_rep}/{len(sub)} ({n_rep/len(sub)*100:.1f}%) replicated nominally"
+          f" [any region: {n_any}/{len(sub)} ({n_any/len(sub)*100:.1f}%)]")
 
 # ── FIGURE A1: PER-REGION REPLICATION RATES ───────────────────────────────────
 print("\nGenerating Figure A1: per-region replication rates ...")
@@ -389,7 +414,7 @@ ax0.text(0, 0.08, f'{N_AGG}', ha='center', va='center',
          fontsize=FS_TITLE+1, fontweight='bold', color='#333333')
 ax0.text(0, -0.15, 'AL- loci', ha='center', va='center',
          fontsize=FS_TICK-1, color='#666666')
-ax0.set_title('Aggregate loci replication\n(best lead SNP, ≥1 region)',
+ax0.set_title('Aggregate loci replication\n(best lead SNP, discovery region)',
               fontsize=FS_LABEL, fontweight='bold')
 ax0.legend(wedges, tier_disp, loc='lower center', fontsize=FS_TICK - 0.5,
            frameon=False, bbox_to_anchor=(0.5, -0.25), ncol=1)

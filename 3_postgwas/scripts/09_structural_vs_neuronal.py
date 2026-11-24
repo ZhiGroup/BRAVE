@@ -281,14 +281,15 @@ ax2.axhspan(ax2.get_ylim()[0] if ax2.get_ylim()[0] < -0.05 else -0.2, 0,
 ax2.axvspan(0, ax2.get_xlim()[1] if ax2.get_xlim()[1] > 0.05 else 0.2,
             alpha=0.05, color=STRUCT_COL)
 
-# Pearson r
+# Pearson r, shown descriptively (2026-11-22): no P value, because the 16 region
+# means share cell-type rows and MAGMA conditioning, so they are not independent.
 r, p = stats.pearsonr(summary['struct_mean'], summary['neuro_mean'])
-ax2.text(0.97, 0.97, f'r = {r:.2f}\np = {p:.2e}',
+ax2.text(0.97, 0.92, f'r = {r:.3f}'.replace('-', '−'),
          transform=ax2.transAxes, ha='right', va='top', fontsize=6)
 
 ax2.set_xlabel('Structural cell types — mean BETA_STD', fontsize=7)
 ax2.set_ylabel('Neuronal cell types — mean BETA_STD', fontsize=7)
-ax2.set_title('Structural enrichment vs neuronal depletion\nper BRE region', fontsize=8)
+ax2.set_title('Structural and neuronal group means\nper BRE region', fontsize=8)
 ax2.spines[['top', 'right']].set_visible(False)
 
 save_mpl(fig2, FIG_DIR / 'structural_vs_neuronal_scatter')

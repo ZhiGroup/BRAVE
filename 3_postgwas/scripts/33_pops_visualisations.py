@@ -210,11 +210,67 @@ def make_method_agreement_matrix(hc: pd.DataFrame, fig_dir: Path):
     plt.close(fig)
 
 
+def make_pops_membership_bars(hc: pd.DataFrame, fig_dir: Path):
+    """Supplementary Fig. S58 (replaces the 5x5 matrix above, 2026-11-22).
+
+    One bar per FUMA locus-based method. For each locus x region pair, take the PoPS
+    top-ranked gene (pops_rank == 1) and the genes the method flags among that pair's
+    rows. hc holds only each pair's five top-PoPS-ranked genes, so the method's set is
+    restricted to those five. The pair enters a method's denominator when both sets
+    are non-empty, and counts as a hit when the PoPS top gene is in the method's set.
+    This is the PoPS row of the old matrix; the method-vs-method cells are dropped
+    because they compared multi-gene sets, not single top choices.
+    """
+    methods = [("is_closest_gene", "Closest gene"),
+               ("in_positional", "Positional"),
+               ("in_eqtl", "eQTL"),
+               ("in_ciMap", "Chromatin\ninteraction")]
+    hits = {c: 0 for c, _ in methods}
+    ns = {c: 0 for c, _ in methods}
+    for _, sub in hc.groupby(["al_id", "region"]):
+        top = set(sub.loc[sub["pops_rank"] == 1, "ensg"])
+        if not top:
+            continue
+        for col, _ in methods:
+            s = set(sub.loc[sub[col] == 1, "ensg"])
+            if s:
+                ns[col] += 1
+                hits[col] += int(bool(top & s))
+    for col, lab in methods:
+        print("  S58 {0:16s} {1}/{2} = {3:.1f}%".format(
+            lab.replace("\n", " "), hits[col], ns[col], 100.0 * hits[col] / ns[col]))
+
+    pct = [100.0 * hits[c] / ns[c] for c, _ in methods]
+    x = np.arange(len(methods))
+    fig, ax = plt.subplots(figsize=(MM(95), MM(70)))
+    ax.bar(x, pct, width=0.6, color="#4878CF", edgecolor="none")
+    for xi, (col, _), v in zip(x, methods, pct):
+        ax.text(xi, v + 1.5, "{0}/{1}\n({2:.1f}%)".format(hits[col], ns[col], v),
+                ha="center", va="bottom", fontsize=6)
+    ax.set_xticks(x)
+    ax.set_xticklabels([lab for _, lab in methods], fontsize=7)
+    ax.set_ylim(0, 115)
+    ax.set_yticks([0, 25, 50, 75, 100])
+    ax.set_ylabel("Locus × region pairs in which the\nPoPS top gene is in the method's set (%)",
+                  fontsize=7)
+    ax.set_title("PoPS top-ranked gene: membership in each\nFUMA method's nominated set",
+                 loc="left", fontweight="bold", fontsize=8.5, pad=6)
+    for side in ("top", "right"):
+        ax.spines[side].set_visible(False)
+    fig.tight_layout()
+    out = fig_dir / "pops_method_agreement"
+    save_mpl(fig, out)
+    print(f"Wrote: {out}.pdf / .png")
+    plt.close(fig)
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--hc-csv", type=Path, default=HC_CSV)
     p.add_argument("--fig-dir", type=Path, default=FIG_DIR)
     p.add_argument("--top-n-effectors", type=int, default=25)
+    p.add_argument("--only-agreement", action="store_true",
+                   help="Draw only Supplementary Fig. S58 (skip the effector table, S57)")
     args = p.parse_args()
 
     args.fig_dir.mkdir(parents=True, exist_ok=True)
@@ -222,8 +278,11 @@ def main():
     hc = pd.read_csv(args.hc_csv)
     print(f"Loaded: {len(hc)} rows; tiers = {hc['tier'].value_counts().sort_index().to_dict()}")
 
-    make_effector_table(hc, args.fig_dir, top_n=args.top_n_effectors)
-    make_method_agreement_matrix(hc, args.fig_dir)
+    if not args.only_agreement:
+        make_effector_table(hc, args.fig_dir, top_n=args.top_n_effectors)
+    # S58 is the one-row membership chart since 2026-11-22; the 5x5 matrix function
+    # above is kept for reference and no longer called.
+    make_pops_membership_bars(hc, args.fig_dir)
 
 
 if __name__ == "__main__":

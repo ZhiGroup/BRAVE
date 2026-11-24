@@ -2,7 +2,7 @@
 19b_oct_gc_focused_figure.py
 Strategy 4 — Hypothesis-driven pairwise OCT GC figure.
 
-17 pre-specified region × trait pairs based on anatomical hypotheses:
+17 literature-selected region × trait pairs based on anatomical hypotheses:
   Thalamus × GCIPL/RNFL  — LGN visual relay pathway
   Hippocampus × GCIPL/INL — AD-related retinal degeneration pathway
   BrainStem × RNFL        — cranial nerve / optic (negative control)
@@ -215,7 +215,7 @@ ax.set_yticklabels(y_labels, fontsize=FS_TICK)
 ax.set_xlabel('Genetic correlation (rg)', fontsize=FS_LABEL)
 ax.set_title(
     'Hypothesis-driven OCT GC: region-specific brain–retina pathways\n'
-    '(17 pre-specified pairs; diamonds = FDR q<0.05)',
+    '(17 literature-selected pairs; diamonds = FDR q<0.05)',
     fontsize=FS_LABEL, fontweight='bold'
 )
 

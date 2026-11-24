@@ -8,8 +8,9 @@ per-voxel embeddings within 16 region masks to get a 128-dimensional
 **Brain Region Embedding (BRE)** per region per subject, and run a multivariate
 joint-test GWAS (JAGWAS) on those 128 dimensions. The 16 regions are 14 bilateral
 subcortical structures (seven bilateral pairs), the brainstem with the fourth
-ventricle, and the lateral ventricle. The last two are not subcortical, so we
-say brain regions rather than subcortical regions throughout. The joint test
+ventricle, and whole-brain cerebrospinal fluid (the FSL FAST CSF tissue class). The
+last two are not subcortical structures, so we say brain regions rather than
+subcortical regions throughout. The joint test
 recovers far
 more genetic signal than univariate GWAS on regional volume alone — 276 loci
 versus 60 for a FastGWA min-P baseline on the same cohort, a 4.6-fold increase

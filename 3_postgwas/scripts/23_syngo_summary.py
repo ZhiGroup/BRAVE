@@ -81,14 +81,17 @@ def load_syngo_region(base, region):
     df["fdr"] = pd.to_numeric(df["fdr"], errors="coerce")
     df = df.dropna(subset=["pval", "fdr"])
 
-    # gene mapping count
+    # gene counts (2026-11-22): the mapping file has one row per SUBMITTED gene
+    # (column 1, "your genelist input"); only rows with an hgnc_id (column 2) matched a
+    # SynGO-annotated gene. The old code reported the submitted count as "mapped".
     gpath = os.path.join(base, region, "user_genelist_map_to_syngo_genes.xlsx")
     wb2 = openpyxl.load_workbook(gpath)
     ws2 = wb2.active
     grows = list(ws2.iter_rows(min_row=2, values_only=True))
-    n_mapped = sum(1 for r in grows if r[0] not in ("", None))
+    n_submitted = sum(1 for r in grows if r[0] not in ("", None))
+    n_matched = sum(1 for r in grows if len(r) > 1 and r[1] not in ("", None))
 
-    return df, n_mapped
+    return df, (n_submitted, n_matched)
 
 
 def main(args):
@@ -153,11 +156,13 @@ def main(args):
     if not sig.empty:
         # use the rightmost of the three FDR-sig regions
         xi_right = max(x_positions[r] for r in sig["region"])
-        y_top = sig["neglog_fdr"].max()
+        y_right = sig.loc[sig["region"].map(x_positions) == xi_right, "neglog_fdr"].max()
+        # label sits inside the axes, just above the threshold line and right of the
+        # point, so its leader line cannot cross the panel title (2026-11-22)
         ax1.annotate(
             "GO:0099159\n(reg. postsynaptic\nstructure modif.)\n3 regions",
-            xy=(xi_right, y_top),
-            xytext=(xi_right + 1.0, y_top + 0.7),
+            xy=(xi_right, y_right),
+            xytext=(xi_right + 1.6, FDR_THRESH + 0.08),
             fontsize=4.5,
             color="#CC0000",
             arrowprops=dict(arrowstyle="-", color="#CC0000", lw=0.5),
@@ -171,7 +176,7 @@ def main(args):
     )
     ax1.set_ylabel("−log₁₀(FDR q)", fontsize=8)
     ax1.set_title(
-        "SynGO ORA: no classical synaptic enrichment in any region",
+        "SynGO over-representation per region\n(FDR q; dashed line q = 0.05)",
         fontsize=9, pad=4,
     )
     ax1.set_xlim(-0.7, len(REGION_ORDER) - 0.3)
@@ -192,15 +197,22 @@ def main(args):
     ax1.text(-0.06, 1.04, "A", transform=ax1.transAxes,
              fontsize=10, fontweight="bold", va="top")
 
-    # ── Panel B: genes mapped bar ──────────────────────────────────────────
-    bars = [n_mapped_dict[r] for r in REGION_ORDER]
+    # ── Panel B: submitted vs SynGO-matched genes per region ───────────────
+    submitted = [n_mapped_dict[r][0] for r in REGION_ORDER]
+    matched = [n_mapped_dict[r][1] for r in REGION_ORDER]
     y_pos = np.arange(len(REGION_ORDER))
-    ax2.barh(y_pos, bars, height=0.65, color="#999999", edgecolor="none")
+    bh = 0.38
+    ax2.barh(y_pos - bh / 2, submitted, height=bh, color="#BBBBBB", edgecolor="none",
+             label="Submitted (FUMA-mapped genes)")
+    ax2.barh(y_pos + bh / 2, matched, height=bh, color="#4878CF", edgecolor="none",
+             label="Matched to SynGO annotations")
     ax2.set_yticks(y_pos)
     ax2.set_yticklabels([REGION_LABELS[r] for r in REGION_ORDER], fontsize=6)
-    ax2.set_xlabel("Genes mapped to SynGO", fontsize=8)
+    ax2.set_xlabel("Genes per region", fontsize=8)
     ax2.set_title("Gene input", fontsize=9, pad=4)
     ax2.invert_yaxis()
+    ax2.legend(fontsize=5.5, frameon=False, loc="upper center",
+               bbox_to_anchor=(0.45, -0.16), ncol=1)
 
     # Panel B label
     ax2.text(-0.18, 1.04, "B", transform=ax2.transAxes,
@@ -218,7 +230,8 @@ def main(args):
             "n_tested": len(sub),
             "n_p05": int((sub["pval"] < 0.05).sum()),
             "n_fdr05": int((sub["fdr"] < 0.05).sum()),
-            "n_mapped": n_mapped_dict[region],
+            "n_submitted": n_mapped_dict[region][0],
+            "n_matched_syngo": n_mapped_dict[region][1],
         })
     sdf = pd.DataFrame(summary)
     print(sdf.to_string(index=False))

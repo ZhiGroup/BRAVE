@@ -313,7 +313,7 @@ ax.set_yticks(range(len(region_order)))
 ax.set_yticklabels(disp_order, fontsize=FS_TICK)
 ax.set_title(
     f'Genetic correlation: BRE dims vs brain diseases\n'
-    f'(top-{TOP_K} h² dims per region; max |rg|; * FDR q<0.05)',
+    f'(top-{TOP_K} fastGWA-REML h²-ranked dimensions per region; max |rg|; * FDR q < 0.05)',
     fontsize=FS_LABEL, fontweight='bold'
 )
 ax.set_xlabel('Brain disease / trait', fontsize=FS_LABEL)
